@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+/* 1. This tells Tailwind v4 to enable the 'class' strategy */
+@variant dark (&:where(.dark, .dark *));
+
+/* 2. Optional: Set a smooth transition for all theme changes */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 3. Global background defaults to ensure no white flashes */
+body {
+  @apply bg-white text-slate-900 transition-colors duration-300;
+  @apply dark:bg-slate-950 dark:text-white;
+}
