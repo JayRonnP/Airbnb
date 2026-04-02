@@ -24,8 +24,8 @@ const Layout = () => {
   const { session, loading } = useAuth()
   const location = useLocation()
   
-  const isPortal = location.pathname.startsWith('/host-portal')
-
+  const isPortal = location.pathname.startsWith('/host')
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
@@ -62,6 +62,9 @@ const Layout = () => {
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/all-staycations" element={<div className="pt-16"><Staycations /></div>} />
+
+        {/* Catch-all Redirect for invalid or unauthorized URLs */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {!isPortal && <Footer />}
