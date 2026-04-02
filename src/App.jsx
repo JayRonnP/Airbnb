@@ -26,6 +26,14 @@ const Layout = () => {
   
   const isPortal = location.pathname.startsWith('/host-portal')
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="w-10 h-10 border-4 border-rose-500/20 border-t-rose-500 rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
   return (
     <>
       {!isPortal && <Header />}
@@ -33,7 +41,7 @@ const Layout = () => {
         {/* Login page — redirect to host portal if already logged in */}
         <Route
           path="/host"
-          element={!loading && session ? <Navigate to="/host-portal" replace /> : <Host />}
+          element={session ? <Navigate to="/host-portal" replace /> : <Host />}
         />
 
         {/* Host Portal — protected, wrapper with Sidebar */}

@@ -44,7 +44,7 @@ function LandingPage() {
             Your seamless journey to finding the perfect stay starts here. From cozy apartments to luxurious villas, we provide an experience tailored to you.
           </p>
           <div className="flex gap-4">
-            <Link 
+            <Link
               to="/all-staycations"
               className="px-8 py-3 bg-rose-500 text-white font-bold rounded-2xl hover:bg-rose-600 shadow-lg shadow-rose-500/20 active:scale-95 transition-all"
             >
@@ -58,7 +58,7 @@ function LandingPage() {
 
         {/* Right Contact Card */}
         <div className="w-full lg:w-1/2 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl flex flex-col justify-center px-8 py-10 shadow-sm relative overflow-hidden">
-          
+
           {success ? (
             <div className="flex flex-col items-center justify-center text-center py-8 animate-in fade-in zoom-in duration-300">
               <div className="w-20 h-20 bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-full flex items-center justify-center mb-6">
