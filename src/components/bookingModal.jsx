@@ -19,6 +19,30 @@ export default function BookingModal({ open, stay, onClose, onBooked }) {
   const [nights, setNights] = useState(0)
   const [totalPrice, setTotalPrice] = useState(0)
 
+  const [existingBookings, setExistingBookings] = useState([])
+  const [isFetchingBookings, setIsFetchingBookings] = useState(false)
+
+  // Fetch existing bookings when modal opens for the selected property
+  useEffect(() => {
+    if (open && stay) {
+      const fetchBookings = async () => {
+        setIsFetchingBookings(true)
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('date_from, date_to')
+          .eq('villa_id', stay.id)
+        
+        if (!error && data) {
+          setExistingBookings(data)
+        }
+        setIsFetchingBookings(false)
+      }
+      fetchBookings()
+    } else {
+      setExistingBookings([])
+    }
+  }, [open, stay])
+
   useEffect(() => {
     if (form.date_from && form.date_to && stay?.price) {
       const start = new Date(form.date_from)
@@ -27,9 +51,23 @@ export default function BookingModal({ open, stay, onClose, onBooked }) {
       const calculatedNights = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
       
       if (calculatedNights > 0) {
-        setNights(calculatedNights)
-        setTotalPrice(calculatedNights * stay.price)
-        setError(null)
+        // Check for overlaps with existing bookings
+        // Formula: (New Start < Existing End) && (New End > Existing Start)
+        const hasOverlap = existingBookings.some((booking) => {
+          const bStart = new Date(booking.date_from)
+          const bEnd = new Date(booking.date_to)
+          return start < bEnd && end > bStart
+        })
+
+        if (hasOverlap) {
+          setNights(0)
+          setTotalPrice(0)
+          setError('These dates are unavailable (already booked).')
+        } else {
+          setNights(calculatedNights)
+          setTotalPrice(calculatedNights * stay.price)
+          setError(null)
+        }
       } else if (form.date_from && form.date_to) {
         setNights(0)
         setTotalPrice(0)
@@ -39,7 +77,7 @@ export default function BookingModal({ open, stay, onClose, onBooked }) {
       setNights(0)
       setTotalPrice(0)
     }
-  }, [form.date_from, form.date_to, stay?.price])
+  }, [form.date_from, form.date_to, stay?.price, existingBookings])
 
   if (!open || !stay) return null
 
@@ -70,6 +108,26 @@ export default function BookingModal({ open, stay, onClose, onBooked }) {
     
     setLoading(true)
     setError(null)
+
+    // Final pre-submit overlap check against the live database
+    const { data: overlaps, error: checkError } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('villa_id', stay.id)
+      .lt('date_from', form.date_to)
+      .gt('date_to', form.date_from)
+
+    if (checkError) {
+      setError('Failed to verify dates. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    if (overlaps && overlaps.length > 0) {
+      setError('Sorry, someone just booked these dates!')
+      setLoading(false)
+      return
+    }
 
     const { error } = await supabase.from('bookings').insert([{
       villa_id: stay.id,

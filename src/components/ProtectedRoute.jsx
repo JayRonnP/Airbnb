@@ -7,8 +7,8 @@ import { useAuth } from '../hooks/useAuth'
  * - Redirects to /host (login page) if not authenticated
  * - Renders children if authenticated
  */
-function ProtectedRoute({ children }) {
-  const { session, loading } = useAuth()
+function ProtectedRoute({ children, allowedRoles }) {
+  const { session, loading, userRole } = useAuth()
 
   if (loading) {
     return (
@@ -23,6 +23,10 @@ function ProtectedRoute({ children }) {
 
   if (!session) {
     return <Navigate to="/host" replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/" replace />
   }
 
   return children

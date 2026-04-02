@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import BookingModal from '../components/bookingModal'
+import WelcomeModal from '../components/WelcomeModal'
+import { useAuth } from '../hooks/useAuth'
 
 const PUBLIC_BASE = import.meta.env.BASE_URL
 
@@ -83,14 +85,6 @@ function StarIcon() {
 }
 
 function StaycationCard({ stay, onBook }) {
-  const [booked, setBooked] = useState(false)
-
-  const handleBook = () => {
-    setBooked(true)
-    onBook(stay)
-    setTimeout(() => setBooked(false), 2000)
-  }
-
   return (
     <div className="w-80 bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden group hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300">
       <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-slate-800">
@@ -131,14 +125,10 @@ function StaycationCard({ stay, onBook }) {
         </div>
 
         <button
-          onClick={handleBook}
-          className={`mt-2 w-full py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 shadow-lg ${
-            booked 
-              ? 'bg-green-500 text-white shadow-green-500/20' 
-              : 'bg-rose-500 text-white shadow-rose-500/20 hover:bg-rose-600'
-          }`}
+          onClick={() => onBook(stay)}
+          className="mt-2 w-full py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 shadow-lg bg-rose-500 text-white shadow-rose-500/20 hover:bg-rose-600"
         >
-          {booked ? '✓ Booking Request Sent' : 'Reserve Now'}
+          Reserve Now
         </button>
       </div>
     </div>
@@ -146,11 +136,17 @@ function StaycationCard({ stay, onBook }) {
 }
 
 function Staycations({ limit }) {
+  const { session } = useAuth()
   const [toast, setToast] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [welcomeOpen, setWelcomeOpen] = useState(false)
   const [selectedStay, setSelectedStay] = useState(null)
 
   const handleBook = (stay) => {
+    if (!session) {
+      setWelcomeOpen(true)
+      return
+    }
     setSelectedStay(stay)
     setModalOpen(true)
   }
@@ -192,6 +188,8 @@ function Staycations({ limit }) {
           />
         ))}
       </div>
+
+      <WelcomeModal isOpen={welcomeOpen} onClose={() => setWelcomeOpen(false)} />
 
       <BookingModal
         open={modalOpen}

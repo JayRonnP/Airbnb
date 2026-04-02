@@ -11,6 +11,8 @@ import Bookings from './Pages/Host/bookings'
 import Properties from './Pages/Host/property'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
+import WelcomeModal from './components/WelcomeModal'
+import { useEffect, useState } from 'react'
 
 const Home = () => (
   <>
@@ -21,8 +23,21 @@ const Home = () => (
 )
 
 const Layout = () => {
-  const { session, loading } = useAuth()
+  const { session, loading, userRole } = useAuth()
   const location = useLocation()
+  const [showWelcome, setShowWelcome] = useState(false)
+
+  useEffect(() => {
+    // Show modal if not logged in, not loading, and not already shown this session
+    if (!loading && !session && !sessionStorage.getItem('welcomeShown')) {
+      setShowWelcome(true)
+    }
+  }, [loading, session])
+
+  const handleCloseWelcome = () => {
+    sessionStorage.setItem('welcomeShown', 'true')
+    setShowWelcome(false)
+  }
   
   const isPortal = location.pathname.startsWith('/host')
   
@@ -36,19 +51,20 @@ const Layout = () => {
 
   return (
     <>
+      <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} />
       {!isPortal && <Header />}
       <Routes>
         {/* Login page — redirect to host portal if already logged in */}
         <Route
           path="/host"
-          element={session ? <Navigate to="/host-portal" replace /> : <Host />}
+          element={session ? <Navigate to={userRole === 'host' ? "/host-portal" : "/"} replace /> : <Host />}
         />
 
         {/* Host Portal — protected, wrapper with Sidebar */}
         <Route
           path="/host-portal"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['host']}>
               <HostLayout />
             </ProtectedRoute>
           }

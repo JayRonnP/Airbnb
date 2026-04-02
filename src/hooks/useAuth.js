@@ -18,5 +18,12 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  return { session, loading: session === undefined }
+  const explicitRole = session?.user?.user_metadata?.role;
+  const provider = session?.user?.app_metadata?.provider;
+  
+  // If role isn't explicitly set in metadata, check if they used Google (guests).
+  // Otherwise, fallback to 'host' for legacy email users.
+  const userRole = explicitRole || (provider === 'google' ? 'guest' : 'host');
+
+  return { session, loading: session === undefined, userRole }
 }
